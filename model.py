@@ -1,6 +1,7 @@
 from datetime import date, timedelta, datetime
 from matplotlib import pyplot as plt
 import csv
+import os
 
 
 class ChiTieu:
@@ -30,13 +31,14 @@ class ChiTieuList:
     self.dschitieu.append(chi_tieu)
 
   def nhaptufile(self):
-    with open("quanlychitieu.csv", mode='r') as f:
-      reader = csv.reader(f)
-      for row in reader:
+    if os.path.exists("quanlychitieu.csv"):
+      with open("quanlychitieu.csv", mode='r') as f:
+        reader = csv.reader(f)
+        for row in reader:
                 if len(row) >= 3:
                     chitieu = ChiTieu(row[0], row[1], row[2])
                     self.dschitieu.append(chitieu)
-   
+    
   def tong_chi_tieu(self):
     tong_chi_tieu = 0
     for chi_tieu in self.dschitieu:
@@ -75,7 +77,7 @@ class ChiTieuList:
           so_tien.append(chi_tieu.so_tien)
     plt.pie(so_tien, labels=muc_dich, autopct='%1.1f%%')
     plt.title(f"Expenses for {date.today().strftime('%B, %Y')}")
-    plt.show()
+    return plt
 
   def xuat(self):
     S = ''
@@ -95,17 +97,19 @@ class ChiTieuList:
 
 class ThuNhap:
 
-  def __init__(self, strngay, so_tien):
+  def __init__(self, strngay, the_loai, so_tien):
     self.strngay = strngay
+    self.the_loai= the_loai
     self.so_tien = float(so_tien)
     self.ngay = datetime.strptime(self.strngay, '%d/%m/%Y')
 
 
   def xuat(self):
-    return self.ngay, self.so_tien
+    return self.ngay,self.the_loai, self.so_tien
 
   def xuatrachuoi(self):
-    S = str(self.ngay.strftime("%d/%m/%Y")) + ',' + str(self.so_tien)
+    S = str(self.ngay.strftime("%d/%m/%Y")) + ',' + self.the_loai + ',' + str(
+      self.so_tien)
     return S
 
 
@@ -119,13 +123,14 @@ class ThuNhapList:
     self.dsthunhap.append(thu_nhap)
   
   def nhaptufile(self):
-    with open("quanlythunhap.csv", mode='r') as f:
-      reader = csv.reader(f)
-      for row in reader:
-                if len(row) >= 2:
-                    thunhap = ThuNhap(row[0], row[1])
+    if os.path.exists("quanlythunhap.csv"):
+      with open("quanlythunhap.csv", mode='r') as f:
+        reader = csv.reader(f)
+        for row in reader:
+                if len(row) >= 3:
+                    thunhap = ThuNhap(row[0], row[1], row[2])
                     self.dsthunhap.append(thunhap)
-
+  
   def tong_thu_nhap(self):
     tong_thu_nhap = 0
     for thu_nhap in self.dsthunhap:
@@ -153,6 +158,18 @@ class ThuNhapList:
     
     return tong_thu_nhap_thang
 
+  def ve_bieu_do_thu_nhap(self):
+    the_loai = []
+    so_tien = []
+    for thu_nhap in self.dsthunhap:
+      if thu_nhap.ngay.month == date.today().month:
+        if thu_nhap.the_loai not in the_loai:
+          the_loai.append(thu_nhap.the_loai)
+          so_tien.append(thu_nhap.so_tien)
+    plt.pie(so_tien, labels=the_loai, autopct='%1.1f%%')
+    plt.title(f"Incomes in {date.today().strftime('%B, %Y')}")
+    return plt
+
   def xuat(self):
     S = ''
     for thu_nhap in self.dsthunhap:
@@ -162,7 +179,7 @@ class ThuNhapList:
   def xuattofile(self):
     with open("quanlythunhap.csv",newline= "", mode='w', encoding='utf-8') as f:
       for thu_nhap in self.dsthunhap:
-        csv.writer(f).writerow([thu_nhap.ngay.strftime("%d/%m/%Y"), thu_nhap.so_tien])
+        csv.writer(f).writerow([thu_nhap.ngay.strftime("%d/%m/%Y"),thu_nhap.the_loai,  thu_nhap.so_tien])
     f.close()
 
 
@@ -212,8 +229,8 @@ if __name__ == "__main__":
   # Tạo list thu nhập và thu nhập
   listthunhap= ThuNhapList()
   listthunhap.nhaptufile()
-  thunhap1 = ThuNhap("25/04/2023", "200")
-  thunhap2 = ThuNhap("10/04/2023", "300")
+  thunhap1 = ThuNhap("25/04/2023","online", "200")
+  thunhap2 = ThuNhap("10/04/2023", "fulltime","300")
  
   # Thêm thu nhập
   listthunhap.them_thu_nhap(thunhap1)
@@ -234,6 +251,9 @@ if __name__ == "__main__":
 
   # In tổng thu nhập trong khoảng thời gian
   print("Tổng thu nhập trong khoảng thời gian là: ",listthunhap.tong_thu_nhap_trong_khoang_thoi_gian("22/1/2023", "26/5/2023"))
+  
+  # vẽ biểu đồ
+  listthunhap.ve_bieu_do_thu_nhap()
   
   # Tính số dư tài khoản
   tong_thu_nhap= listthunhap.tong_thu_nhap()
