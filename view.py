@@ -1,3 +1,4 @@
+#hfdkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkka
 #import các thư viện
 from kivy.app import App
 from kivy.uix.relativelayout import RelativeLayout
@@ -6,8 +7,15 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+from matplotlib.figure import Figure
 from kivy.uix.boxlayout import BoxLayout
 from model import *
+
+
+from kivy.config import Config
+Config.set('graphics', 'window_state', 'visible')
+
 
 class MyWindow(Screen):
     def __init__(self, **kwargs):
@@ -52,6 +60,7 @@ class MyWindow(Screen):
 
     def on_button3_press(self, instance):
         self.manager.current = 'screen4' 
+        
 
 
 class Screen2(Screen):
@@ -144,17 +153,20 @@ class Screen2(Screen):
         listthunhap.nhaptufile()
         listthunhap.them_thu_nhap(thunhap)
         listthunhap.xuattofile()
-        print(thunhap.xuatrachuoi())
-        print("Tổng tất cả các thu nhập:", listthunhap.tong_thu_nhap())
-        print("Tổng thu nhập trong tháng:", listthunhap.tong_thu_nhap_trong_thang_hien_tai())
-        print("Tổng thu nhập trong khoảng thời gian là: ",listthunhap.tong_thu_nhap_trong_khoang_thoi_gian("22/1/2023", "26/5/2023"))
-        
+        listthunhap.tao_bao_cao()
+ 
         
     def store_data2(self, instance):
         # Lưu dữ liệu của 3 ô textinput
         chi_tieu = self.input_chitieu.text
         the_loai_chi = self.input_theloaichi.text
         date = self.input_date.text
+        chitieu= ChiTieu(date, the_loai_chi, chi_tieu)
+        listchitieu= ChiTieuList()
+        listchitieu.nhaptufile()
+        listchitieu.them_chi_tieu(chitieu)
+        listchitieu.xuattofile()
+        listchitieu.tao_bao_cao()
 
     def on_back_button_press(self, instance):
         self.manager.current = 'screen1'
@@ -168,13 +180,6 @@ class Screen3(Screen):
         bg_image = Image(source='bg2.jpg', keep_ratio=False, allow_stretch=True)
         self.add_widget(bg_image)
 
-        # Nút quay lại vào giao diện
-        back_button = Button(text='Back', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
-                             pos_hint={'center_x': 0.5 , 'top': 1 - 900/1024},
-                             background_normal='but2.png', background_down='but2.png')
-        back_button.bind(on_press=self.on_back_button_press)
-        self.add_widget(back_button)
-
     def on_back_button_press(self, instance):
         self.manager.current = 'screen1'
 
@@ -185,17 +190,73 @@ class Screen4(Screen):
         # Thiết lập background là hình ảnh "bg2.jpg"
         bg_image = Image(source='bg2.jpg', keep_ratio=False, allow_stretch=True)
         self.add_widget(bg_image)
-
-        # Nút quay lại vào giao diện
+        
+        bieu_do_button = Button(text='Xem biểu đồ thu nhập', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
+                             pos_hint={'center_x': 0.4 , 'top': 1 - 800/1024},
+                             background_normal='but2.png', background_down='but2.png')
+        bieu_do_button.bind(on_press=self.ve_bieu_do_thu_nhap)
+        self.add_widget(bieu_do_button)
+        
+        bieu_do_button = Button(text='Xem biểu đồ chi tiêu', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
+                             pos_hint={'center_x': 0.8 , 'top': 1 - 800/1024},
+                             background_normal='but2.png', background_down='but2.png')
+        bieu_do_button.bind(on_press=self.ve_bieu_do_chi_tieu)
+        self.add_widget(bieu_do_button)
+        
         back_button = Button(text='Back', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
                              pos_hint={'center_x': 0.5 , 'top': 1 - 900/1024},
                              background_normal='but2.png', background_down='but2.png')
         back_button.bind(on_press=self.on_back_button_press)
         self.add_widget(back_button)
+        
+    def ve_bieu_do_thu_nhap(self, instance):
+        # Vẽ biểu đồ
+        listthunhap= ThuNhapList()
+        listthunhap.nhaptufile()
+        fig = Figure()
+        ax = fig.add_subplot(111)
+        listthunhap.ve_bieu_do_thu_nhap(ax)
+    
+        # Tạo widget FigureCanvasKivyAgg từ Figure
+        canvas = FigureCanvasKivyAgg(fig)
 
+        # Thêm widget FigureCanvasKivyAgg vào Screen4
+        self.add_widget(canvas)
+        canvas.pos_hint= {'center_x': 0.5, 'center_y': 0.5}
+        
+        back_button = Button(text='Back', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
+                             pos_hint={'center_x': 0.5 , 'top': 1 - 900/1024},
+                             background_normal='but2.png', background_down='but2.png')
+        back_button.bind(on_press=self.on_back_4_button_press)
+        self.add_widget(back_button)
+
+    def ve_bieu_do_chi_tieu(self, instance):
+        # Vẽ biểu đồ
+        listchitieu= ChiTieuList()
+        listchitieu.nhaptufile()
+        fig = Figure()
+        ax = fig.add_subplot(111)
+        listchitieu.ve_bieu_do_chi_tieu(ax)
+    
+        # Tạo widget FigureCanvasKivyAgg từ Figure
+        canvas = FigureCanvasKivyAgg(fig)
+
+        # Thêm widget FigureCanvasKivyAgg vào Screen4
+        self.add_widget(canvas)
+        canvas.pos_hint= {'center_x': 0.5, 'center_y': 0.5}
+        
+        back_button = Button(text='Back', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
+                             pos_hint={'center_x': 0.5 , 'top': 1 - 900/1024},
+                             background_normal='but2.png', background_down='but2.png')
+        back_button.bind(on_press=self.on_back_4_button_press)
+        self.add_widget(back_button)
+    
     def on_back_button_press(self, instance):
         self.manager.current = 'screen1'
-
+    
+    def on_back_4_button_press(self, instance):
+        self.manager.current = 'screen4'
+        
 class MyScreenManager(ScreenManager):
     pass
 
