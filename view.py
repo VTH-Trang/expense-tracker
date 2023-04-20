@@ -1,4 +1,4 @@
-#hfdkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkka
+#in báo cáo
 #import các thư viện
 from kivy.app import App
 from kivy.uix.relativelayout import RelativeLayout
@@ -9,8 +9,12 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from matplotlib.figure import Figure
+from kivy.core.window import Window
+from kivy.uix.scrollview import ScrollView
+import io
 from kivy.uix.boxlayout import BoxLayout
 from model import *
+from model import ChiTieuList, ThuNhapList
 
 
 from kivy.config import Config
@@ -59,9 +63,11 @@ class MyWindow(Screen):
         self.manager.current = 'screen3'
 
     def on_button3_press(self, instance):
-        self.manager.current = 'screen4' 
+        screen4 = self.manager.get_screen('screen4')
+        screen4.reset()
+        self.manager.current = 'screen4'
         
-
+        
 
 class Screen2(Screen):
     def __init__(self, **kwargs):
@@ -180,8 +186,75 @@ class Screen3(Screen):
         bg_image = Image(source='bg2.jpg', keep_ratio=False, allow_stretch=True)
         self.add_widget(bg_image)
 
+        # Nút quay lại vào giao diện
+        back_button = Button(text='Back', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(100, 50),
+                             pos_hint={'center_x': 0.7 , 'top': 1 - 900/1024},
+                             background_normal='but2.png')
+        back_button.bind(on_press=self.on_back_button_press)
+        self.add_widget(back_button)
+
+        # Tạo một nút để in file
+        btn = Button(text='In file', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(100, 50),
+                             pos_hint={'center_x': 0.5 , 'top': 1 - 900/1024},
+                             background_normal='but2.png',
+                      on_press=self.print_file)
+
+        # Tạo một Label để hiển thị nội dung file
+        self.file_content_label = Label(text='', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf',
+                                        font_size='20sp',
+                                        halign='left',
+                                        valign='top',
+                                        size_hint_y=None,
+                                        markup=True)
+        self.file_content_label2 = Label(text='', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf',
+                                        font_size='20sp',
+                                        halign='left',
+                                        valign='top',
+                                        size_hint_y=None,
+                                        markup=True)
+        # Tạo hai ScrollView và đặt các Label vào trong ScrollView
+        self.scroll_view = ScrollView(size_hint=(0.5, None),
+                                       size=(Window.width/2, Window.height - 100),
+                                       pos_hint={'center_x': .25, 'center_y': .72},
+                                       do_scroll_x=False,
+                                       do_scroll_y = 1.0)
+        self.scroll_view.add_widget(self.file_content_label)
+        self.scroll_view2 = ScrollView(size_hint=(0.5, None),
+                                       size=(Window.width/2, Window.height - 100),
+                                       pos_hint={'center_x': .75, 'center_y': .5},
+                                       do_scroll_x=False)
+        self.scroll_view2.add_widget(self.file_content_label2)
+
+        # Tạo một BoxLayout và đặt hai ScrollView vào trong BoxLayout
+        box_layout = BoxLayout(orientation='horizontal')
+        box_layout.add_widget(self.scroll_view)
+        box_layout.add_widget(self.scroll_view2)
+
+        # Đặt BoxLayout vào layout của màn hình
+        self.add_widget(btn)
+        self.add_widget(box_layout)
+    
     def on_back_button_press(self, instance):
         self.manager.current = 'screen1'
+
+    def print_file(self, instance):
+        # Mở file 'bao_cao_thu_nhap.txt' để đọc
+        with io.open('bao_cao_thu_nhap.txt', 'r', encoding='utf-8') as f1:
+            # Đọc nội dung của file vào một biến
+            file_content1 = f1.read()
+        # Mở file 'bao_cao_chi_tieu.txt' để đọc
+        with io.open('bao_cao_chi_tieu.txt', 'r', encoding='utf-8') as f2:
+            # Đọc nội dung của file vào một biến
+            file_content2 = f2.read()
+        # Đặt nội dung file vào Label
+        self.file_content_label.text = file_content1
+        self.file_content_label2.text = file_content2
+        # Cập nhật kích thước của ScrollView để hiển thị đầy đủ nội dung
+        self.file_content_label.texture_update()
+        self.file_content_label2.texture_update()
+        self.scroll_view.scroll_y = 1.0
+        self.scroll_view.height = self.file_content_label.texture_size[1]
+        self.scroll_view.height = self.file_content_label2.texture_size[1]
 
 class Screen4(Screen):
     def __init__(self, **kwargs):
@@ -191,72 +264,102 @@ class Screen4(Screen):
         bg_image = Image(source='bg2.jpg', keep_ratio=False, allow_stretch=True)
         self.add_widget(bg_image)
         
-        bieu_do_button = Button(text='Xem biểu đồ thu nhập', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
-                             pos_hint={'center_x': 0.4 , 'top': 1 - 800/1024},
+        xuatbd_button = Button(text='Xuất biểu đồ', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
+                             pos_hint={'center_x': 0.5 , 'top': 1 - 800/1024},
                              background_normal='but2.png', background_down='but2.png')
-        bieu_do_button.bind(on_press=self.ve_bieu_do_thu_nhap)
-        self.add_widget(bieu_do_button)
+        xuatbd_button.bind(on_press=self.ve_bieu_do)
         
-        bieu_do_button = Button(text='Xem biểu đồ chi tiêu', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
-                             pos_hint={'center_x': 0.8 , 'top': 1 - 800/1024},
+        self.add_widget(xuatbd_button)
+       
+        back_button = Button(text='Back', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
+                             pos_hint={'center_x': 0.5 , 'top': 1 - 900/1024},
                              background_normal='but2.png', background_down='but2.png')
-        bieu_do_button.bind(on_press=self.ve_bieu_do_chi_tieu)
-        self.add_widget(bieu_do_button)
+        back_button.bind(on_press=self.on_back_button_press)
+        self.add_widget(back_button)
+       
+    def ve_bieu_do(self, instance):
+         # Tạo box layout để chứa biểu đồ
+        box_layout1 = BoxLayout(orientation='vertical', size_hint=(1, 0.5))
+        self.add_widget(box_layout1)
+        
+        box_layout2 = BoxLayout(orientation='vertical', size_hint=(1, 0.5))
+        self.add_widget(box_layout2)
+
+        # Tạo scroll view để biểu đồ có thể cuộn được
+        scroll_view1 = ScrollView(size_hint=(1, None), height=800)
+        box_layout1.add_widget(scroll_view1)
+        
+        scroll_view2 = ScrollView(size_hint=(1, None), height=800)
+        box_layout2.add_widget(scroll_view2)
+        
+         # Tạo box layout để chứa figure canvas
+        canvas_box_layout1 = BoxLayout(orientation='vertical', size_hint=(0.5, None), height=500)
+        scroll_view1.add_widget(canvas_box_layout1)
+        
+        canvas_box_layout2 = BoxLayout(orientation='vertical', size_hint=(0.5, None), height=500)
+        scroll_view2.add_widget(canvas_box_layout2)
+        
+         # Vẽ biểu đồ thu nhập
+        listthunhap= ThuNhapList()
+        listthunhap.nhaptufile()
+        fig1 = Figure()
+        fig1 = plt.figure(figsize=(4, 2))
+        ax1 = fig1.add_subplot(111)
+        listthunhap.ve_bieu_do_thu_nhap(ax1)
+        
+        # Vẽ biểu đồ chi tiêu
+        listchitieu= ChiTieuList()
+        listchitieu.nhaptufile()
+        fig2 = Figure()
+        fig2 = plt.figure(figsize=(4, 2))
+        ax2 = fig2.add_subplot(111)
+        listchitieu.ve_bieu_do_chi_tieu(ax2)
+   
+        # Tạo widget FigureCanvasKivyAgg từ Figure
+        canvas1 = FigureCanvasKivyAgg(fig1)
+        canvas2 = FigureCanvasKivyAgg(fig2)
+
+        # Thêm widget FigureCanvasKivyAgg vào Screen4
+        canvas_box_layout1.add_widget(canvas1)
+        canvas_box_layout2.add_widget(canvas2)
+        
+        canvas1.pos_hint= {'center_x': 0.5,  'center_y': 1, "top": 1}
+        canvas2.pos_hint= {'center_x': 1.5, 'center_y': 1, "top": 1}
+        
+        xuatbd_button = Button(text='Xuất biểu đồ', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
+                             pos_hint={'center_x': 0.5 , 'top': 1 - 800/1024},
+                             background_normal='but2.png', background_down='but2.png')
+        xuatbd_button.bind(on_press=self.ve_bieu_do)
         
         back_button = Button(text='Back', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
                              pos_hint={'center_x': 0.5 , 'top': 1 - 900/1024},
                              background_normal='but2.png', background_down='but2.png')
         back_button.bind(on_press=self.on_back_button_press)
         self.add_widget(back_button)
-        
-    def ve_bieu_do_thu_nhap(self, instance):
-        # Vẽ biểu đồ
-        listthunhap= ThuNhapList()
-        listthunhap.nhaptufile()
-        fig = Figure()
-        ax = fig.add_subplot(111)
-        listthunhap.ve_bieu_do_thu_nhap(ax)
-    
-        # Tạo widget FigureCanvasKivyAgg từ Figure
-        canvas = FigureCanvasKivyAgg(fig)
-
-        # Thêm widget FigureCanvasKivyAgg vào Screen4
-        self.add_widget(canvas)
-        canvas.pos_hint= {'center_x': 0.5, 'center_y': 0.5}
-        
-        back_button = Button(text='Back', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
-                             pos_hint={'center_x': 0.5 , 'top': 1 - 900/1024},
-                             background_normal='but2.png', background_down='but2.png')
-        back_button.bind(on_press=self.on_back_4_button_press)
-        self.add_widget(back_button)
-
-    def ve_bieu_do_chi_tieu(self, instance):
-        # Vẽ biểu đồ
-        listchitieu= ChiTieuList()
-        listchitieu.nhaptufile()
-        fig = Figure()
-        ax = fig.add_subplot(111)
-        listchitieu.ve_bieu_do_chi_tieu(ax)
-    
-        # Tạo widget FigureCanvasKivyAgg từ Figure
-        canvas = FigureCanvasKivyAgg(fig)
-
-        # Thêm widget FigureCanvasKivyAgg vào Screen4
-        self.add_widget(canvas)
-        canvas.pos_hint= {'center_x': 0.5, 'center_y': 0.5}
-        
-        back_button = Button(text='Back', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
-                             pos_hint={'center_x': 0.5 , 'top': 1 - 900/1024},
-                             background_normal='but2.png', background_down='but2.png')
-        back_button.bind(on_press=self.on_back_4_button_press)
-        self.add_widget(back_button)
-    
+   
     def on_back_button_press(self, instance):
-        self.manager.current = 'screen1'
-    
-    def on_back_4_button_press(self, instance):
-        self.manager.current = 'screen4'
+            self.manager.current = 'screen1'
+            
+    def reset(self):
+        # Thiết lập background là hình ảnh "bg2.jpg"
+        bg_image = Image(source='bg2.jpg', keep_ratio=False, allow_stretch=True)
+        self.add_widget(bg_image)
         
+        xuatbd_button = Button(text='Xuất biểu đồ', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
+                             pos_hint={'center_x': 0.5 , 'top': 1 - 800/1024},
+                             background_normal='but2.png', background_down='but2.png')
+        xuatbd_button.bind(on_press=self.ve_bieu_do)
+        
+        self.add_widget(xuatbd_button)
+       
+        back_button = Button(text='Back', font_name='#9Slide03 Montserrat Alternates SemiBold.ttf', size_hint=(None, None), size=(253, 80),
+                             pos_hint={'center_x': 0.5 , 'top': 1 - 900/1024},
+                             background_normal='but2.png', background_down='but2.png')
+        back_button.bind(on_press=self.on_back_button_press)
+        self.add_widget(back_button)
+        
+
+    
 class MyScreenManager(ScreenManager):
     pass
 
@@ -270,8 +373,9 @@ class MyApp(App):
         sm.add_widget(Screen2(name='screen2'))
         sm.add_widget(Screen3(name='screen3'))
         sm.add_widget(Screen4(name='screen4'))
-
         return sm
+
 
 if __name__ == '__main__':
     MyApp().run()
+
