@@ -2,7 +2,7 @@ from datetime import date, timedelta, datetime
 from matplotlib import pyplot as plt
 import csv
 import os
-
+from matplotlib.figure import Figure
 
 class ChiTieu:
 
@@ -38,6 +38,12 @@ class ChiTieuList:
                 if len(row) >= 3:
                     chitieu = ChiTieu(row[0], row[1], row[2])
                     self.dschitieu.append(chitieu)
+  
+  def tao_bao_cao(self):
+    with open("bao_cao_chi_tieu.txt", mode= "+a", encoding="utf-8") as f:
+      for chi_tieu in  self.dschitieu:
+        f.write("Ngày {}: chi {}VND cho {}".format(chi_tieu.ngay.strftime("%d/%m/%Y"), chi_tieu.so_tien, chi_tieu.muc_dich, ) + "\n")
+    
     
   def tong_chi_tieu(self):
     tong_chi_tieu = 0
@@ -67,17 +73,20 @@ class ChiTieuList:
     return tong_chi_tieu_thang
 
 
-  def ve_bieu_do_chi_tieu(self):
-    muc_dich = []
-    so_tien = []
-    for chi_tieu in self.dschitieu:
-      if chi_tieu.ngay.month == date.today().month:
-        if chi_tieu.muc_dich not in muc_dich:
-          muc_dich.append(chi_tieu.muc_dich)
-          so_tien.append(chi_tieu.so_tien)
-    plt.pie(so_tien, labels=muc_dich, autopct='%1.1f%%')
-    plt.title(f"Expenses for {date.today().strftime('%B, %Y')}")
-    return plt
+  def ve_bieu_do_chi_tieu(self, ax):
+            muc_dich = []
+            so_tien = []
+            for chi_tieu in self.dschitieu:
+                if chi_tieu.ngay.month == date.today().month:
+                    if chi_tieu.muc_dich not in muc_dich:
+                        muc_dich.append(chi_tieu.muc_dich)
+                        so_tien.append(chi_tieu.so_tien)
+                    else: 
+                      for i in range( len(muc_dich)):
+                        if chi_tieu.muc_dich == muc_dich[i]:
+                          so_tien[i]+=chi_tieu.so_tien
+            ax.pie(so_tien, labels=muc_dich, autopct='%1.1f%%')
+            ax.set_title(f"Expenses for {date.today().strftime('%B, %Y')}")
 
   def xuat(self):
     S = ''
@@ -117,10 +126,6 @@ class ThuNhapList:
 
   def __init__(self):
     self.dsthunhap = []
-
-  def them_thu_nhap(self, thu_nhap):
-    self.thu_nhap = thu_nhap
-    self.dsthunhap.append(thu_nhap)
   
   def nhaptufile(self):
     if os.path.exists("quanlythunhap.csv"):
@@ -130,11 +135,20 @@ class ThuNhapList:
                 if len(row) >= 3:
                     thunhap = ThuNhap(row[0], row[1], row[2])
                     self.dsthunhap.append(thunhap)
+
+  def them_thu_nhap(self, thu_nhap):
+    self.thu_nhap = thu_nhap
+    self.dsthunhap.append(thu_nhap)
+  
+  def tao_bao_cao(self):
+    with open("bao_cao_thu_nhap.txt", mode= "+a", encoding="utf-8") as f:
+      for thu_nhap in  self.dsthunhap:
+        f.write("Ngày {}: thu {}VND từ {}".format(thu_nhap.ngay.strftime("%d/%m/%Y"), thu_nhap.so_tien, thu_nhap.the_loai ) + "\n")
   
   def tong_thu_nhap(self):
     tong_thu_nhap = 0
     for thu_nhap in self.dsthunhap:
-      tong_thu_nhap += float(thu_nhap.so_tien)
+      tong_thu_nhap += thu_nhap.so_tien
     return tong_thu_nhap
 
   def tong_thu_nhap_trong_khoang_thoi_gian(self, strbat_dau, strket_thuc):
@@ -158,18 +172,21 @@ class ThuNhapList:
     
     return tong_thu_nhap_thang
 
-  def ve_bieu_do_thu_nhap(self):
-    the_loai = []
-    so_tien = []
-    for thu_nhap in self.dsthunhap:
-      if thu_nhap.ngay.month == date.today().month:
-        if thu_nhap.the_loai not in the_loai:
-          the_loai.append(thu_nhap.the_loai)
-          so_tien.append(thu_nhap.so_tien)
-    plt.pie(so_tien, labels=the_loai, autopct='%1.1f%%')
-    plt.title(f"Incomes in {date.today().strftime('%B, %Y')}")
-    return plt
-
+  def ve_bieu_do_thu_nhap(self, ax):
+            the_loai = []
+            so_tien = []
+            for thu_nhap in self.dsthunhap:
+                if thu_nhap.ngay.month == date.today().month:
+                    if thu_nhap.the_loai not in the_loai:
+                        the_loai.append(thu_nhap.the_loai)
+                        so_tien.append(thu_nhap.so_tien)
+                    else: 
+                      for i in range( len(the_loai)):
+                        if thu_nhap.the_loai == the_loai[i]:
+                          so_tien[i]+=thu_nhap.so_tien
+            ax.pie(so_tien, labels=the_loai, autopct='%1.1f%%')
+            ax.set_title(f"Expenses for {date.today().strftime('%B, %Y')}")
+  
   def xuat(self):
     S = ''
     for thu_nhap in self.dsthunhap:
@@ -191,7 +208,7 @@ class TaiKhoan:
     so_du = tong_thu_nhap - tong_chi_tieu
     return so_du
 
-if __name__ == "__main__":
+"""if __name__ == "__main__":
   # Tạo tài khoản
   taikhoan= TaiKhoan(5000000)
   
@@ -224,7 +241,8 @@ if __name__ == "__main__":
     listchitieu.tong_chi_tieu_trong_khoang_thoi_gian("22/1/2023", "26/5/2023"))
 
   # Vẽ biểu đồ chi tiêu
-  listchitieu.ve_bieu_do_chi_tieu()
+  
+
   
   # Tạo list thu nhập và thu nhập
   listthunhap= ThuNhapList()
@@ -252,10 +270,9 @@ if __name__ == "__main__":
   # In tổng thu nhập trong khoảng thời gian
   print("Tổng thu nhập trong khoảng thời gian là: ",listthunhap.tong_thu_nhap_trong_khoang_thoi_gian("22/1/2023", "26/5/2023"))
   
-  # vẽ biểu đồ
-  listthunhap.ve_bieu_do_thu_nhap()
-  
   # Tính số dư tài khoản
   tong_thu_nhap= listthunhap.tong_thu_nhap()
   tong_chi_tieu= listchitieu.tong_chi_tieu()
   print("Số dư tài khoản là:", taikhoan.tinh_so_du(tong_thu_nhap, tong_chi_tieu))
+  listchitieu.tao_bao_cao()
+  listthunhap.tao_bao_cao()"""
