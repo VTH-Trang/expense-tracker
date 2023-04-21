@@ -1,4 +1,4 @@
-# expense-tracker
+# Expense-tracker
 Smart Money is an application that helps users track and manage their spending by providing intuitive reporting charts
 <img width="594" alt="image" src="https://user-images.githubusercontent.com/131190848/233595010-416e1d62-a1f6-45bb-8fc0-e6af89057afd.png">
 
