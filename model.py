@@ -1,8 +1,8 @@
 from datetime import date, timedelta, datetime
-from matplotlib import pyplot as plt
 import csv
 import os
 from matplotlib.figure import Figure
+from matplotlib import pyplot as plt
 
 class ChiTieu:
 
@@ -40,7 +40,7 @@ class ChiTieuList:
                     self.dschitieu.append(chitieu)
   
   def tao_bao_cao(self):
-    with open("bao_cao_chi_tieu.txt", mode= "+a", encoding="utf-8") as f:
+    with open("bao_cao_chi_tieu.txt", mode= "w", encoding="utf-8") as f:
       for chi_tieu in  self.dschitieu:
         f.write("Ngày {}: chi {}VND cho {}".format(chi_tieu.ngay.strftime("%d/%m/%Y"), chi_tieu.so_tien, chi_tieu.muc_dich, ) + "\n")
     
@@ -88,11 +88,6 @@ class ChiTieuList:
             ax.pie(so_tien, labels=muc_dich, autopct='%1.1f%%')
             ax.set_title(f"Expenses for {date.today().strftime('%B, %Y')}")
 
-  def xuat(self):
-    S = ''
-    for chi_tieu in self.dschitieu:
-      S += chi_tieu.xuatrachuoi() + '\n'
-    return S
 
   def xuattofile(self):
     with open("quanlychitieu.csv",newline= "", mode='w', encoding='utf-8') as f:
@@ -141,7 +136,7 @@ class ThuNhapList:
     self.dsthunhap.append(thu_nhap)
   
   def tao_bao_cao(self):
-    with open("bao_cao_thu_nhap.txt", mode= "+a", encoding="utf-8") as f:
+    with open("bao_cao_thu_nhap.txt", mode= "w", encoding="utf-8") as f:
       for thu_nhap in  self.dsthunhap:
         f.write("Ngày {}: thu {}VND từ {}".format(thu_nhap.ngay.strftime("%d/%m/%Y"), thu_nhap.so_tien, thu_nhap.the_loai ) + "\n")
   
@@ -185,7 +180,7 @@ class ThuNhapList:
                         if thu_nhap.the_loai == the_loai[i]:
                           so_tien[i]+=thu_nhap.so_tien
             ax.pie(so_tien, labels=the_loai, autopct='%1.1f%%')
-            ax.set_title(f"Expenses for {date.today().strftime('%B, %Y')}")
+            ax.set_title(f"Incoms in {date.today().strftime('%B, %Y')}")
   
   def xuat(self):
     S = ''
@@ -198,81 +193,3 @@ class ThuNhapList:
       for thu_nhap in self.dsthunhap:
         csv.writer(f).writerow([thu_nhap.ngay.strftime("%d/%m/%Y"),thu_nhap.the_loai,  thu_nhap.so_tien])
     f.close()
-
-
-class TaiKhoan:
-  def __init__(self, so_tien):
-    self.so_tien = so_tien
-
-  def tinh_so_du(self, tong_thu_nhap, tong_chi_tieu):
-    so_du = tong_thu_nhap - tong_chi_tieu
-    return so_du
-
-"""if __name__ == "__main__":
-  # Tạo tài khoản
-  taikhoan= TaiKhoan(5000000)
-  
-  # Tạo chi tiêu và list chi tiêu
-  listchitieu = ChiTieuList()
-  listchitieu.nhaptufile()
-  chitieu1 = ChiTieu("22/04/2023", "milk", "50")
-  chitieu2 = ChiTieu("15/04/2023", 'snack', "40")
-
-  # Thêm chi tiêu
-  listchitieu.them_chi_tieu(chitieu1)
-  listchitieu.them_chi_tieu(chitieu2)
-
-  # Lưu vào file
-  listchitieu.xuattofile()
-
-  # In từng chuỗi chi tiêu
-  print(chitieu1.xuatrachuoi())
-  print(chitieu2.xuatrachuoi())
-  
-  #In tổng chi tiêu
-  print("Tổng tất cả các chi tiêu:", listchitieu.tong_chi_tieu())
-  
-  #In tổng chi tiêu trong tháng
-  print("Tổng chi tiêu trong tháng:", listchitieu.tong_chi_tieu_trong_thang_hien_tai())
-
-  # In tổng chi tiêu trong khoảng thời gian
-  print(
-    "Tổng chi tiêu trong khoảng thời gian là: ",
-    listchitieu.tong_chi_tieu_trong_khoang_thoi_gian("22/1/2023", "26/5/2023"))
-
-  # Vẽ biểu đồ chi tiêu
-  
-
-  
-  # Tạo list thu nhập và thu nhập
-  listthunhap= ThuNhapList()
-  listthunhap.nhaptufile()
-  thunhap1 = ThuNhap("25/04/2023","online", "200")
-  thunhap2 = ThuNhap("10/04/2023", "fulltime","300")
- 
-  # Thêm thu nhập
-  listthunhap.them_thu_nhap(thunhap1)
-  listthunhap.them_thu_nhap(thunhap2)
-  
-  # Lưu vào file
-  listthunhap.xuattofile()
-  
-  # In chuỗi thu nhập
-  print(thunhap1.xuatrachuoi())
-  print(thunhap2.xuatrachuoi())
-  
-  #In tổng thu nhập
-  print("Tổng tất cả các thu nhập:", listthunhap.tong_thu_nhap())
-  
-  #In tổng thu nhập trong tháng
-  print("Tổng thu nhập trong tháng:", listthunhap.tong_thu_nhap_trong_thang_hien_tai())
-
-  # In tổng thu nhập trong khoảng thời gian
-  print("Tổng thu nhập trong khoảng thời gian là: ",listthunhap.tong_thu_nhap_trong_khoang_thoi_gian("22/1/2023", "26/5/2023"))
-  
-  # Tính số dư tài khoản
-  tong_thu_nhap= listthunhap.tong_thu_nhap()
-  tong_chi_tieu= listchitieu.tong_chi_tieu()
-  print("Số dư tài khoản là:", taikhoan.tinh_so_du(tong_thu_nhap, tong_chi_tieu))
-  listchitieu.tao_bao_cao()
-  listthunhap.tao_bao_cao()"""
